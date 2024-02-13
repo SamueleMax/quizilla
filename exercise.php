@@ -23,6 +23,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'submit') {
         $user_answers[$question_id] = $_POST['question-' . $question_id];
     }
     // TODO: Check if user has permission to submit this exercise
+    // Get exercise id
+    $stmt = $conn->prepare('SELECT exercise_id FROM questions WHERE id = ?'); // TODO: WORKING ON THIS RIGHT NOW
+
     // Insert new exercise data
     $userid = get_userid();
     $stmt = $conn->prepare('INSERT INTO user_answers (question_id, answer_id, user_id) VALUES (?, ?, ?)');
