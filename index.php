@@ -7,20 +7,16 @@ $conn = get_db();
 $exercises = [];
 
 // Get exercises
-$result = $conn->query('SELECT id, exercise FROM exercises');
+$result = $conn->query('SELECT id, text FROM exercises');
 while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-    $exercises[] = $row;
+    $exercises[$row['id']] = ['text' => $row['text']];
 }
+
 // Get exercises statuses for current user
-$userid = get_userid();
 $stmt = $conn->prepare('SELECT exercise_id, status FROM exercises_statuses WHERE user_id = ?');
-$stmt->execute([$userid]);
+$stmt->execute([get_userid()]);
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    for ($i = 0; $i < count($exercises); $i++) {
-        if ($exercises[$i]['id'] === $row['exercise_id']) {
-            $exercises[$i]['status'] = $row['status'];
-        }
-    }
+    $exercises[$row['exercise_id']]['status'] = $row['status'];
 }
 ?>
 
@@ -42,9 +38,9 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             <section class="mb-3">
                 <h3 class="mb-3">Esercizi</h3>
                 <div class="list-group">
-                    <?php foreach ($exercises as $exercise): ?>
-                        <a href="<?= 'exercise.php?id=' . $exercise['id'] ?>" class="p-3 list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <?= $exercise['exercise'] ?>
+                    <?php foreach ($exercises as $id => $exercise): ?>
+                        <a href="<?= 'exercise.php?action=query&id=' . $id ?>" class="p-3 list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <?= $exercise['text'] ?>
                             <?php
                             switch ($exercise['status']) {
                                 case 'completed':

@@ -4,8 +4,50 @@ require 'functions.php';
 $conn = get_db();
 
 // Vars
-$exercise = '';
+$exercise_text = '';
 $questions = [];
+
+if (!isset($_GET['action'])) {
+    return;
+}
+
+switch ($_GET['action']) {
+    case 'query':
+        if (!isset($_GET['id'])) {
+            return;
+        }
+
+        // Check if user has access to requested exercise
+        $stmt = $conn->prepare('SELECT status FROM exercises_statuses WHERE user_id = ? AND exercise_id = ?');
+        $stmt->execute([get_userid(), $_GET['id']]);
+        if ($stmt->fetch(PDO::FETCH_NUM)[0] !== 'todo') {
+            show_error("Non hai accesso a questo esercizio");
+            return;
+        }
+
+        // Get exercise text
+        $stmt = $conn->prepare('SELECT text FROM exercises WHERE id = ?');
+        $stmt->execute([$_GET['id']]);
+        $exercise_text = $stmt->fetch(PDO::FETCH_NUM)[0];
+
+        // Get exercise questions
+        $stmt = $conn->prepare('SELECT id, text FROM questions WHERE exercise_id = ?');
+        $stmt->execute([$_GET['id']]);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $questions[$row['id']] = ['text' => $row['text']];
+        }
+
+        // Get possible answers for every question
+        foreach ($questions as $id => &$question) {
+            $stmt = $conn->prepare('SELECT id, text FROM answers WHERE question_id = ?');
+            $stmt->execute([$id]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $question['answers'] = [$row['id'] => $row['text']];
+            }
+        }
+        print_r($questions);
+        break;
+}
 
 if (isset($_GET['action']) && $_GET['action'] === 'submit') {
     // Retrieve the ids of the questions of this exercise

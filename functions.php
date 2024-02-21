@@ -1,4 +1,8 @@
 <?php
+function show_error($error) {
+    echo $error;
+}
+
 function get_db() {
     return new PDO('mysql:host=localhost;dbname=quizilla', 'ninja', 'ninja');
 }
@@ -7,7 +11,7 @@ function get_userid() {
     return 1;
 }
 
-// Components
+// HTML Components
 function get_header() {
     return '
         <header>
